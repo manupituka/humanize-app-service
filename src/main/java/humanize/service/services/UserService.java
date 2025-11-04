@@ -39,12 +39,18 @@ public class UserService {
             throw new RuntimeException("CPF inválido!");
         }
 
+        // Se o role não vier, define um padrão (ex: GESTANTE)
+        String role = (request.getRole() == null || request.getRole().isEmpty())
+                ? "GESTANTE"
+                : request.getRole();
+
         // Criar entidade
         UserEntity userEntity = UserEntity.builder()
                 .name(request.getName())
                 .username(request.getUsername())
                 .password(request.getPassword()) // TODO: Criptografar depois!
                 .cpf(request.getCpf())
+                .role(role) // <-- novo campo adicionado
                 .build();
 
         // Salvar no banco
@@ -58,6 +64,7 @@ public class UserService {
                 .name(savedUser.getName())
                 .username(savedUser.getUsername())
                 .cpf(savedUser.getCpf())
+                .role(savedUser.getRole()) // <-- agora retorna o papel
                 .build();
     }
 
@@ -70,6 +77,7 @@ public class UserService {
                 .name(user.getName())
                 .username(user.getUsername())
                 .cpf(user.getCpf())
+                .role(user.getRole()) // <-- também retorna aqui
                 .build();
     }
 
@@ -89,20 +97,9 @@ public class UserService {
 
     //Validação básica de CPF
     private boolean isValidCpf(String cpf) {
-        // Remove caracteres não numéricos
         cpf = cpf.replaceAll("[^0-9]", "");
-
-        // Verifica se tem 11 dígitos
-        if (cpf.length() != 11) {
-            return false;
-        }
-
-        // Verifica se não são todos iguais (ex: 111.111.111-11)
-        if (cpf.matches("(\\d)\\1{10}")) {
-            return false;
-        }
-
+        if (cpf.length() != 11) return false;
+        if (cpf.matches("(\\d)\\1{10}")) return false;
         return true;
-        // Para validação completa com dígitos verificadores, seria mais complexo
     }
 }
